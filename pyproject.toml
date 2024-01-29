@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools", "setuptools-golang"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "Lumi"
+description = "Crynux Lumi framework for AI Native Apps"
+readme = "README.md"
+requires-python = ">=3.8"
+license = { file = "LICENSE" }
+classifiers = ["Programming Language :: Python :: 3"]
+dependencies = [
+    "dataclass-wizard",
+    "python-dotenv",
+    "requests",
+    "PyYAML",
+    "llama-cpp-python",
+    "openai",
+]
+version = "0.0.1"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["*"]
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[tool.pytest.ini_options]
+pythonpath = [
+    ".", "src",
+]

@@ -1,0 +1,43 @@
+# pre-commit run   (-a)
+repos:
+
+# out-of-box hooks
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v3.3.0
+    hooks:
+    -   id: check-added-large-files
+    -   id: check-case-conflict
+    -   id: check-executables-have-shebangs
+    -   id: check-merge-conflict
+    -   id: check-symlinks
+    -   id: check-vcs-permalinks
+    -   id: check-yaml
+    -   id: detect-aws-credentials
+        args:
+        -   --allow-missing-credentials
+    -   id: detect-private-key
+    -   id: end-of-file-fixer
+    -   id: fix-byte-order-marker
+    -   id: mixed-line-ending
+    -   id: trailing-whitespace
+        # Trailing whitespaces are unchanged lines in patch files
+        exclude: '^.*\.patch$'
+        args:
+        -   --markdown-linebreak-ext=md
+
+-   repo: local
+    hooks:
+    -   id: trailing-whitespace
+        name: trailing-whitespace
+        entry: trailing-whitespace-fixer
+        language: system
+    -   id: end-of-file-fixer
+        name: end-of-file
+        entry: trailing-whitespace-fixer
+        language: system
+    -   id: tests
+        name: Unit tests
+        entry: python3 -m unittest -k *test_fake*
+        files: unittests/.*_test.py
+        language: system
+        types: [python]

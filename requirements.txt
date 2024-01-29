@@ -1,0 +1,17 @@
+# Python utils
+python-dotenv
+dataclass-wizard
+requests
+PyYAML
+pytest
+
+# Huggingface
+datasets
+
+# LM
+openai
+# CMAKE_ARGS="-DLLAMA_METAL=on" pip install llama-cpp-python
+llama-cpp-python
+
+# Applications
+discord

@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 
 from llama_cpp import Llama
 
-from lumi import LM, LMInferenceOption
+from lumi import LM, LMInferenceOption, Message
 
 
 @dataclass
@@ -19,6 +19,8 @@ class LlamaCppRunner(LM):
     use_gpu: bool = True
     seed: int = -1
     context_len: int = -1
+    chat_format: str = ""
+
 
     def __post_init__(self):
         super().__post_init__()
@@ -31,14 +33,26 @@ class LlamaCppRunner(LM):
             args["seed"] = self.seed
         if self.context_len > 0:
             args["n_ctx"] = self.context_len
+        if self.chat_format:
+            args["chat_format"] = self.chat_format
         self.runner = Llama(**args)
+        self.validate()
 
 
-    def generate(self, query: str, option: LlamaCppOption) -> str:
-        result = self.runner(
+    def complete_text(self, query: str, option: LlamaCppOption) -> str:
+        result = self.runner.create_completion(
             query,
             max_tokens=option.max_tokens,
             stop=option.stop,
             echo=option.echo)
         return result["choices"][0]["text"]
-        
+
+    def complete_chat(self, query: list[Message], option: LlamaCppOption) -> Message:
+        result = self.runner.create_chat_completion(
+            messages=[{"role": m.author, "content": m.content} for m in query]
+        )
+        return Message(
+            author=result["choices"][0]["message"]["role"],
+            content=result["choices"][0]["message"]["content"],
+        )
+

@@ -1,4 +1,4 @@
-Setup your discord server to play with happy AIGen.
+Setup your discord bot to play with happy AIGen.
 
 1. Enable Discord bot on your discord server.
 

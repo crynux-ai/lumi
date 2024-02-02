@@ -1,0 +1,8 @@
+
+
+class Storage:
+	
+
+
+class InMemoryStore:
+

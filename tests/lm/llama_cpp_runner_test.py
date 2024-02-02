@@ -3,7 +3,7 @@ import pytest
 from lm import LlamaCppRunner, LlamaCppOption
 from lumi import Message
 
-def tes1t_complete_text():
+def test_complete_text():
 	runner = LlamaCppRunner(
 		name="llama7b",
 		model_path="../../models/llama-7b.q4_0.gguf")

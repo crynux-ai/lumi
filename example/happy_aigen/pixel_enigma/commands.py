@@ -63,7 +63,7 @@ class GameSystem:
         pass
 
 
-game_system = GameSystem(game_store=storage.InMemoryStorage())
+game_system = GameSystem(game_store=storage.InMemoryStore())
 
 
 class Group(discord.app_commands.Group):
@@ -75,8 +75,7 @@ class Group(discord.app_commands.Group):
     @discord.app_commands.command(
         name="prompt",
         description=(
-            "Enter your prompt to generate the image. Please DM the bot, "
-            "so that the prompt is not disclosed to others"))
+            "[MUST DM the bot] Enter your prompt to generate the image."))
     async def prompt(self, interaction: discord.Interaction, prompt: str):
         await interaction.response.send_message(f"Your prompt is {prompt}")
 

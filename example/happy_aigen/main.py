@@ -27,7 +27,8 @@ async def on_ready():
     channels = await discord_helper.get_channels(
         client.guilds[0], discord_helper.category_name())
     assert channels
-    print(f"{len(channels)} available in the first server")
+    print(f"{len(channels)} channels available in the first server")
+    print(f"Their member count: {str([len(c.members) for c in channels])}")
 
     synced = await tree.sync()
     print(f"Ready to play with {len(synced)} commands! Commands: {synced}")

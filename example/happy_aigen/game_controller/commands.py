@@ -1,9 +1,11 @@
 import dataclasses
 from datetime import datetime
+import os
 from typing import Union, Optional
 
 import discord
 from utils import storage
+from game_controller import discord_helper
 
 @dataclasses.dataclass
 class User:
@@ -58,6 +60,7 @@ user_system = UserSystem(user_store=storage.InMemoryStore())
     name="join", description="Join HappyAIGen with a simple click")
 async def join(interaction: discord.Interaction):
     existed_user = await user_system.new_user(interaction)
+
     if existed_user:
         await interaction.response.send_message((
             f"Hello, {str(interaction.user)}, you've already joined HappyAIGen. "

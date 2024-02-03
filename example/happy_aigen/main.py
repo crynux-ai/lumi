@@ -16,6 +16,7 @@ client = discord.Client(intents=bot_intent)
 tree = discord.app_commands.CommandTree(client)
 
 
+game_controller.admin.add_commands(tree)
 game_controller.user.add_commands(tree)
 pixel_enigma.add_commands(tree)
 

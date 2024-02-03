@@ -1,39 +1,57 @@
 import discord
 import os
+from typing import Optional
+
 
 
 def _get_os_value(key: str) -> str:
-	value = os.getenv(key)
-	assert value
-	return value
+    value = os.getenv(key)
+    assert value
+    return value
 
 
 def bot_token() -> str:
-	return _get_os_value("HAPPY_AIGEN_DISCORD_BOT_TOKEN")
+    return _get_os_value("HAPPY_AIGEN_DISCORD_BOT_TOKEN")
 
 def category_name() -> str:
-	return _get_os_value("HAPPY_AIGEN_CATEGORY_NAME")
+    return _get_os_value("HAPPY_AIGEN_CATEGORY_NAME")
 
 def public_channel_url() -> str:
-	return _get_os_value("HAPPY_AIGEN_PUBLIC_CHANNEL_URL")
+    return _get_os_value("HAPPY_AIGEN_PUBLIC_CHANNEL_URL")
 
 def pixel_enigma_min_player() -> int:
-	return _get_os_value("PIXEL_ENIGMA_MIN_PLAYER")
+    return _get_os_value("PIXEL_ENIGMA_MIN_PLAYER")
 
 
 async def get_channels(
-	guild: discord.Guild, category_name: str) -> list[discord.abc.GuildChannel]:
-	if not guild:
-		return []
-	category = discord.utils.get(guild.categories, name=category_name)
-	if not category:
-		return []
-	return category.channels
+    guild: discord.Guild, category_name: str) -> list[discord.abc.GuildChannel]:
+    if not guild:
+        return []
+    category = discord.utils.get(guild.categories, name=category_name)
+    if not category:
+        return []
+    return category.channels
 
 
 async def add_user_to_channel(channel: discord.abc.GuildChannel, member: discord.Member):
-	perms = channel.overwrites_for(member)
-	perms.send_messages = True
-	perms.read_messages = True
-	# perms.view_channel = True
-	await channel.set_permissions(member, overwrite=perms, reason="Join")
+    perms = channel.overwrites_for(member)
+    perms.send_messages = True
+    perms.read_messages = True
+    # perms.view_channel = True 
+    await channel.set_permissions(member, overwrite=perms, reason="Join")
+
+
+async def create_private_channel(
+    guild: discord.Guild, category_name: str, channel_name: str) -> Optional[discord.TextChannel]:
+
+    parent = guild
+    if category_name:
+        parent = discord.utils.get(guild.categories, name=category_name)
+        if not parent:
+            return None
+
+    overwrites = {
+        guild.default_role: discord.PermissionOverwrite(view_channel=False),
+        guild.me: discord.PermissionOverwrite(view_channel=True)
+    }
+    return await parent.create_text_channel(channel_name, overwrites=overwrites)

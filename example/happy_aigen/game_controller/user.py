@@ -74,6 +74,7 @@ user_system = UserSystem(user_store=storage.InMemoryStore())
 
 @discord.app_commands.command(
     name="join", description="Join HappyAIGen with a simple click")
+@discord.app_commands.guild_only()
 async def join(interaction: discord.Interaction):
     if not interaction.guild:
         await interaction.response.send_message((

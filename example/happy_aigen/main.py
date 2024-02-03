@@ -4,6 +4,7 @@ import os
 
 import discord
 import user_system
+import pixel_enigma
 
 
 bot_intent = discord.Intents.default()
@@ -14,11 +15,12 @@ tree = discord.app_commands.CommandTree(client)
 
 
 user_system.add_commands(tree)
+pixel_enigma.add_commands(tree)
 
 @client.event
 async def on_ready():
     synced = await tree.sync()
-    print(f"Ready to play with {len(synced)} commands! Commands: {synced}")
+    print(f"{client.user} Ready to play with {len(synced)} commands! Commands: {synced}")
 
 
 load_dotenv("./env/discord_bot.env")

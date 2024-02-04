@@ -23,6 +23,7 @@ class User:
     source_channel_id: int
     source_guild_id: int
     current_channel_id: int
+    current_guild_id: int
 
     def get_credit_str(self) -> str:
         return "{:.2f}".format(self.credit_e8 / 1e8)
@@ -56,6 +57,7 @@ class UserSystem:
             source_channel_id=interaction.channel_id or 0,
             source_guild_id=interaction.guild_id or 0,
             current_channel_id=0,
+            current_guild_id=0,
         )
         await self.user_store.insert(interaction.user.id, dataclasses.asdict(user))
         return user
@@ -82,23 +84,31 @@ class Group(discord.app_commands.Group):
     async def join(self, interaction: discord.Interaction):
         if not interaction.guild:
             return await interaction.response.send_message((
-                f"Hello, {str(interaction.user)}, can you type `/join` from "
+                f"Hello, {str(interaction.user)}, can you type `/user join` from "
                 f"a [channel]({discord_helper.public_channel_url()}) with HappyAIGen bot?"
             ))
 
         if discord_helper.in_maintenance():
             return await interaction.response.send_message((
-                f"HappyAIGen is in maintenance, yelll at the admin to resolve it."
+                f"HappyAIGen is in maintenance, yell at the admin to resolve it."
             ))
 
         # Add user to the system
         existed_user = await user_system.new_user(interaction)
         if existed_user and existed_user.current_channel_id:
-            await interaction.response.send_message((
-                f"Hello, {str(interaction.user)}, you've already joined HappyAIGen. "
-                f"You have {existed_user.get_credit_str()} credits. Have fun!"
-            ))
-            return
+            check_user_in_channel = False
+            channel = discord.utils.get(interaction.guild.channels, id=existed_user.current_channel_id)
+            if channel and interaction.user in channel.members:
+                check_user_in_channel = True
+
+            if check_user_in_channel:
+                channel_url = discord_helper.get_channel_url(
+                    existed_user.current_guild_id, existed_user.current_channel_id)
+                return await interaction.response.send_message((
+                    f"Hello, {str(interaction.user)}, you've already joined "
+                    f"HappyAIGen in this [channel]({channel_url})."
+                    f"You have {existed_user.get_credit_str()} credits. Have fun!"
+                ))
 
         # Find channel with least member to join
         channels = await discord_helper.get_channels(
@@ -110,27 +120,38 @@ class Group(discord.app_commands.Group):
                 min_member = len(c.members)
                 join_channel = c
         if not join_channel:
-            await interaction.response.send_message((
+            return await interaction.response.send_message((
                 f"Hello, {str(interaction.user)}, {interaction.guild.name} contains {len(channels)} "
-                f"channels. We could not join it. Yell at the admin to fix it."
+                f"channels. We could not join any channel. Yell at the admin to fix it."
             ))
-            return
 
         if interaction.guild.me not in join_channel.members:
-            await interaction.response.send_message((
+            return await interaction.response.send_message((
                 f"Hello, {str(interaction.user)}, HappyAIGen is not in {interaction.guild.name}:{join_channel.name}. "
                 f"Yell at the admin to fix it."
             ))
-            return
+
+        channel_url = discord_helper.get_channel_url(interaction.guild.id, join_channel.id)
+        channel_message = f"[Channel {join_channel.name}]({channel_url})"
+
+        if existed_user.current_channel_id == 0:
+            response_message = (
+                f"Hello, {str(interaction.user)}, welcome to HappyAIGen. "
+                f"You are rewarded with {existed_user.get_credit_str()} credits. Have fun in {channel_message}!"
+            )
+        else:
+            response_message = (
+                f"Hello, {str(interaction.user)}, we've added you back. "
+                f"You have {existed_user.get_credit_str()} credits. Have fun in {channel_message}!"
+            )
+
 
         await discord_helper.add_user_to_channel(join_channel, interaction.user)
         existed_user.current_channel_id = join_channel.id
+        existed_user.current_guild_id = interaction.guild_id
         await asyncio.gather(
             user_system.update_user(existed_user),
-            interaction.response.send_message((
-                f"Hello, {str(interaction.user)}, welcome to HappyAIGen. "
-                f"You are rewarded with {100} credits. Have fun!"
-            )),
+            interaction.response.send_message(response_message),
             join_channel.send(
                 f"Welcome {interaction.user.mention} to {join_channel.name}")
         )

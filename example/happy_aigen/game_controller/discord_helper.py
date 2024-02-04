@@ -20,6 +20,9 @@ def category_name() -> str:
 def public_channel_url() -> str:
     return _get_os_value("HAPPY_AIGEN_PUBLIC_CHANNEL_URL")
 
+def get_channel_url(guild_id: int, channel_id: int) -> str:
+    return f"https://discord.com/channels/{guild_id}/{channel_id}"
+
 def pixel_enigma_min_player() -> int:
     return int(_get_os_value("PIXEL_ENIGMA_MIN_PLAYER"))
 

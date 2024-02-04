@@ -6,7 +6,9 @@ from typing import Union, Optional
 
 import discord
 from utils import storage
+from game_controller import admin
 from game_controller import discord_helper
+
 
 @dataclasses.dataclass
 class User:
@@ -77,11 +79,15 @@ user_system = UserSystem(user_store=storage.InMemoryStore())
 @discord.app_commands.guild_only()
 async def join(interaction: discord.Interaction):
     if not interaction.guild:
-        await interaction.response.send_message((
+        return await interaction.response.send_message((
             f"Hello, {str(interaction.user)}, can you type `/join` from "
             f"a [channel]({discord_helper.public_channel_url()}) with HappyAIGen bot?"
         ))
-        return
+
+    if discord_helper.in_maintenance():
+        return await interaction.response.send_message((
+            f"HappyAIGen is in maintenance, yelll at the admin to resolve it."
+        ))
 
     # Add user to the system
     existed_user = await user_system.new_user(interaction)

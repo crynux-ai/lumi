@@ -1,9 +1,10 @@
 import discord
+import enum
 import os
 from typing import Optional
 
 
-
+### OS Env settings ###
 def _get_os_value(key: str) -> str:
     value = os.getenv(key)
     assert value
@@ -20,9 +21,25 @@ def public_channel_url() -> str:
     return _get_os_value("HAPPY_AIGEN_PUBLIC_CHANNEL_URL")
 
 def pixel_enigma_min_player() -> int:
-    return _get_os_value("PIXEL_ENIGMA_MIN_PLAYER")
+    return int(_get_os_value("PIXEL_ENIGMA_MIN_PLAYER"))
 
 
+class SystemMaintenanceStatus(enum.Enum):
+    LIVE = 0
+    IN_MAINTENANCE = 1
+
+
+def set_maintenance(status: int):
+    os.environ["HAPPY_AIGEN_MAINTENANCE_MODE"] = str(status)
+
+
+def in_maintenance() -> bool:
+    value = os.getenv("HAPPY_AIGEN_MAINTENANCE_MODE")
+    return value and int(value) == SystemMaintenanceStatus.IN_MAINTENANCE.value
+
+
+
+#### Discord Channels ####
 async def get_channels(
     guild: discord.Guild, category_name: str) -> list[discord.abc.GuildChannel]:
     if not guild:

@@ -84,6 +84,10 @@ class GameSystem:
                 configs.config["pixel_enigma"]["min_player"])
 
         game = self.pending_game[u.current_channel_id]
+        if u.discord_userid in game.players_dcuser_id:
+            return None, (
+                f"Hello, {interaction.user.mention}, you are already in waiting queue,"
+                f" just wait {configs.config["pixel_enigma"]["match_timeout_sec"]} seconds")
         game.players_dcuser_id.append(u.discord_userid)
         game.players_original_credit_e8.append(u.credit_e8)
         # TODO: add a lock on user credit right after check.

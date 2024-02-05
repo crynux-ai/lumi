@@ -23,8 +23,10 @@ class Group(discord.app_commands.Group):
                 f"[channel]({configs.get_channel_url(u.current_guild_id, u.current_channel_id)})?"
             ))
 
-        await interaction.response.send_message("Matching players...")
-        game, response = await game_system.start(interaction)
+        await interaction.response.send_message(
+            f"Stake {configs.get_credit_str(configs.config["pixel_enigma"]["stake_credit_e8"])}"
+            f" credits. Matching players...")
+        game, response = await game_system.start(interaction, u)
         if response:
             await interaction.channel.send(response)
 

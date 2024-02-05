@@ -56,13 +56,11 @@ class GameSystem:
         self.pending_game = {}
         self.pending_barrier = {}
 
-    async def start(self, interaction: discord.Interaction) -> Tuple[Optional[Game], str]:
-        u = await user.user_system.query_user(interaction.user.id)
-        if not u:
+    async def start(self, interaction: discord.Interaction, u: user.User) -> Tuple[Optional[Game], str]:
+        if u.credit_e8 < configs.config["pixel_enigma"]["stake_credit_e8"]:
             return None, (
-                f"Hello, {interaction.user.mention}, have you type `/user join` "
-                f"in the [channel]({configs.config["discord"]["public_channel_url"]})")
-
+                f"Hello, {interaction.user.mention}, you don't have enough credit to start a game. "
+                f"Try to invite more friends or run a Crynux node to earn credits.")
         if u.current_channel_id not in self.pending_game:
             self.pending_game[u.current_channel_id] = Game(
                 # TODO: setup game id
@@ -88,7 +86,10 @@ class GameSystem:
         game = self.pending_game[u.current_channel_id]
         game.players_dcuser_id.append(u.discord_userid)
         game.players_original_credit_e8.append(u.credit_e8)
-        game.players_stake_credit_e8.append(10*100_000_000)
+        # TODO: add a lock on user credit right after check.
+        u.credit_e8 -= configs.config["pixel_enigma"]["stake_credit_e8"]
+        game.players_stake_credit_e8.append(
+            configs.config["pixel_enigma"]["stake_credit_e8"])
         try:
             async with asyncio.timeout(configs.config["pixel_enigma"]["match_timeout_sec"]):
                 await self.pending_barrier[u.current_channel_id].wait()
@@ -105,6 +106,7 @@ class GameSystem:
             game.status = GameStatus.FAILED
             game.actions.append(GameAction.FAIL)
             game.action_timestamp_ms.append(configs.current_timestamp_ms())
+            u.credit_e8 += configs.config["pixel_enigma"]["stake_credit_e8"]
             game.action_details.append(
                 f"Timeout with {self.pending_barrier[interaction.channel_id].n_waiting} players")
             return None, f"Sorry, {interaction.user.mention}, we haven't matched any players with you, try again later."

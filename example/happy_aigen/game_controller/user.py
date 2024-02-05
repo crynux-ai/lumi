@@ -24,9 +24,6 @@ class User:
     current_channel_id: int
     current_guild_id: int
 
-    def get_credit_str(self) -> str:
-        return "{:.2f}".format(self.credit_e8 / 1e8)
-
 
 class UserSystem:
 
@@ -64,7 +61,7 @@ class UserSystem:
     async def show_credit(self, interaction: discord.Interaction) -> Optional[str]:
         user = await self.query_user(interaction.user.id)
         if user:
-            return user.get_credit_str()
+            return configs.get_credit_str(user.credit_e8)
         else:
             return None
 
@@ -106,7 +103,7 @@ class Group(discord.app_commands.Group):
                 return await interaction.response.send_message((
                     f"Hello, {str(interaction.user)}, you've already joined "
                     f"HappyAIGen in this [channel]({channel_url})."
-                    f"You have {existed_user.get_credit_str()} credits. Have fun!"
+                    f"You have {configs.get_credit_str(existed_user.credit_e8)} credits. Have fun!"
                 ))
 
         # Find channel with least member to join
@@ -136,12 +133,12 @@ class Group(discord.app_commands.Group):
         if existed_user.current_channel_id == 0:
             response_message = (
                 f"Hello, {str(interaction.user)}, welcome to HappyAIGen. "
-                f"You are rewarded with {existed_user.get_credit_str()} credits. Have fun in {channel_message}!"
+                f"You are rewarded with {configs.get_credit_str(existed_user.credit_e8)} credits. Have fun in {channel_message}!"
             )
         else:
             response_message = (
                 f"Hello, {str(interaction.user)}, we've added you back. "
-                f"You have {existed_user.get_credit_str()} credits. Have fun in {channel_message}!"
+                f"You have {configs.get_credit_str(existed_user.credit_e8)} credits. Have fun in {channel_message}!"
             )
 
 

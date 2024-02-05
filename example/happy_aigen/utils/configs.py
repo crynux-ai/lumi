@@ -6,9 +6,11 @@ from typing import Optional
 
 config = parse_config("setting.yaml")
 
-
 def current_timestamp_ms() -> int:
     return int(datetime.now().timestamp()*1000)
+
+def get_credit_str(credit_e8: int) -> str:
+    return "{:.2f}".format(credit_e8 / 1e8)
 
 def get_channel_url(guild_id: int, channel_id: int) -> str:
     return f"https://discord.com/channels/{guild_id}/{channel_id}"

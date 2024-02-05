@@ -25,4 +25,9 @@ expect: Respond "Not enough credit, you can invite your friends or start Crynux 
 6. Timeout while waiting
 expect: Respond "Timeout"
 
+7. Start twice
+    A: /pixel start
+    A: /pixel start
+expect: Second start returns "You are already in the queue"
+
 """

@@ -1,8 +1,7 @@
 import discord
-from game_controller import discord_helper
 from game_controller import user
 from pixel_enigma import game_system
-from utils import storage
+from utils import storage, configs
 
 
 game_system = game_system.GameSystem(game_store=storage.InMemoryStore())
@@ -16,12 +15,12 @@ class Group(discord.app_commands.Group):
         if not u or not u.current_channel_id:
             return await interaction.response.send_message((
                 f"Hello, {str(interaction.user)}, can you type `/user join` from "
-                f"a [channel]({discord_helper.public_channel_url()}) with HappyAIGen bot?"
+                f"a [channel]({configs.config["discord"]["public_channel_url"]}) with HappyAIGen bot?"
             ))
         if not interaction.guild or interaction.channel_id != u.current_channel_id:
             return await interaction.response.send_message((
                 f"Hello, {str(interaction.user)}, can you type `/pixel_enigma start` from your assigned "
-                f"[channel]({discord_helper.get_channel_url(u.current_guild_id, u.current_channel_id)})?"
+                f"[channel]({configs.get_channel_url(u.current_guild_id, u.current_channel_id)})?"
             ))
 
         await interaction.response.send_message("Matching players...")

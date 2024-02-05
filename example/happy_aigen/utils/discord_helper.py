@@ -1,49 +1,8 @@
 import discord
-import enum
-import os
 from typing import Optional
 
 
-### OS Env settings ###
-def _get_os_value(key: str) -> str:
-    value = os.getenv(key)
-    assert value
-    return value
-
-
-def bot_token() -> str:
-    return _get_os_value("HAPPY_AIGEN_DISCORD_BOT_TOKEN")
-
-def category_name() -> str:
-    return _get_os_value("HAPPY_AIGEN_CATEGORY_NAME")
-
-def public_channel_url() -> str:
-    return _get_os_value("HAPPY_AIGEN_PUBLIC_CHANNEL_URL")
-
-def get_channel_url(guild_id: int, channel_id: int) -> str:
-    return f"https://discord.com/channels/{guild_id}/{channel_id}"
-
-def pixel_enigma_min_player() -> int:
-    return int(_get_os_value("PIXEL_ENIGMA_MIN_PLAYER"))
-
-
-class SystemMaintenanceStatus(enum.Enum):
-    LIVE = 0
-    IN_MAINTENANCE = 1
-
-
-def set_maintenance(status: int):
-    os.environ["HAPPY_AIGEN_MAINTENANCE_MODE"] = str(status)
-
-
-def in_maintenance() -> bool:
-    value = os.getenv("HAPPY_AIGEN_MAINTENANCE_MODE")
-    return value and int(value) == SystemMaintenanceStatus.IN_MAINTENANCE.value
-
-
-
-#### Discord Channels ####
-async def get_channels(
+async def get_channels_in_category(
     guild: discord.Guild, category_name: str) -> list[discord.abc.GuildChannel]:
     if not guild:
         return []

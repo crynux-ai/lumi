@@ -4,9 +4,8 @@ import discord
 import enum
 from typing import Tuple, Optional
 
-from game_controller import discord_helper
 from game_controller import user
-from utils import storage, fields
+from utils import storage, configs
 
 class GameStatus(enum.Enum):
     PENDING = 0
@@ -62,7 +61,7 @@ class GameSystem:
         if not u:
             return None, (
                 f"Hello, {interaction.user.mention}, have you type `/user join` "
-                f"in the [channel]({discord_helper.pixel_enigma_min_player()})")
+                f"in the [channel]({configs.config["discord"]["public_channel_url"]})")
 
         if u.current_channel_id not in self.pending_game:
             self.pending_game[u.current_channel_id] = Game(
@@ -78,25 +77,25 @@ class GameSystem:
                 players_prompts=[],
                 winner_dcuser_id=0,
                 actions=[GameAction.START],
-                action_timestamp_ms=[fields.current_timestamp_ms()],
+                action_timestamp_ms=[configs.current_timestamp_ms()],
                 action_details=[""],
                 worker_cid=[],
                 worker_credit_e8=[],
             )
             self.pending_barrier[u.current_channel_id] = asyncio.Barrier(
-                discord_helper.pixel_enigma_min_player())
+                configs.config["pixel_enigma"]["min_player"])
 
         game = self.pending_game[u.current_channel_id]
         game.players_dcuser_id.append(u.discord_userid)
         game.players_original_credit_e8.append(u.credit_e8)
         game.players_stake_credit_e8.append(10*100_000_000)
         try:
-            async with asyncio.timeout(10):
+            async with asyncio.timeout(configs.config["pixel_enigma"]["match_timeout_sec"]):
                 await self.pending_barrier[u.current_channel_id].wait()
             game.status = GameStatus.ALL_JOINED
             self.game_store.insert(game.game_id, game)
             
-            if u.current_channel_id in pending_game:
+            if u.current_channel_id in self.pending_game:
                 self.pending_game.pop(u.current_channel_id)
                 self.pending_barrier.pop(u.current_channel_id)
                 return game, "Hello, Game Start!"
@@ -105,13 +104,10 @@ class GameSystem:
         except TimeoutError:
             game.status = GameStatus.FAILED
             game.actions.append(GameAction.FAIL)
-            game.action_timestamp_ms.append(fields.current_timestamp_ms())
+            game.action_timestamp_ms.append(configs.current_timestamp_ms())
             game.action_details.append(
                 f"Timeout with {self.pending_barrier[interaction.channel_id].n_waiting} players")
             return None, f"Sorry, {interaction.user.mention}, we haven't matched any players with you, try again later."
-
-
-        
 
 
     async def prompt(self, interaction: discord.Interaction, prompt: str):

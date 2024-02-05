@@ -5,9 +5,8 @@ import os
 from typing import Union, Optional
 
 import discord
-from utils import storage
+from utils import storage, discord_helper, configs
 from game_controller import admin
-from game_controller import discord_helper
 
 
 @dataclasses.dataclass
@@ -85,10 +84,10 @@ class Group(discord.app_commands.Group):
         if not interaction.guild:
             return await interaction.response.send_message((
                 f"Hello, {str(interaction.user)}, can you type `/user join` from "
-                f"a [channel]({discord_helper.public_channel_url()}) with HappyAIGen bot?"
+                f"a [channel]({configs.config["discord"]["public_channel_url"]}) with HappyAIGen bot?"
             ))
 
-        if discord_helper.in_maintenance():
+        if configs.in_maintenance():
             return await interaction.response.send_message((
                 f"HappyAIGen is in maintenance, yell at the admin to resolve it."
             ))
@@ -102,7 +101,7 @@ class Group(discord.app_commands.Group):
                 check_user_in_channel = True
 
             if check_user_in_channel:
-                channel_url = discord_helper.get_channel_url(
+                channel_url = configs.get_channel_url(
                     existed_user.current_guild_id, existed_user.current_channel_id)
                 return await interaction.response.send_message((
                     f"Hello, {str(interaction.user)}, you've already joined "
@@ -111,8 +110,8 @@ class Group(discord.app_commands.Group):
                 ))
 
         # Find channel with least member to join
-        channels = await discord_helper.get_channels(
-            interaction.guild, discord_helper.category_name())
+        channels = await discord_helper.get_channels_in_category(
+            interaction.guild, configs.config["discord"]["category_name"])
         min_member = 100_000_000_000
         join_channel = None
         for c in channels:
@@ -131,7 +130,7 @@ class Group(discord.app_commands.Group):
                 f"Yell at the admin to fix it."
             ))
 
-        channel_url = discord_helper.get_channel_url(interaction.guild.id, join_channel.id)
+        channel_url = configs.get_channel_url(interaction.guild.id, join_channel.id)
         channel_message = f"[Channel {join_channel.name}]({channel_url})"
 
         if existed_user.current_channel_id == 0:
@@ -167,7 +166,7 @@ class Group(discord.app_commands.Group):
         else:
             await interaction.response.send_message((
                 f"Hello, {str(interaction.user)}, you haven't joined HappyAIGen yet."
-                f"Please use command /join to join."
+                f"Please use command `/user join` to join."
             ))
 
 def add_commands(tree):

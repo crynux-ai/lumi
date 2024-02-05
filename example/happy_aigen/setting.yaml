@@ -1,0 +1,8 @@
+discord:
+  token: !ENV ${HAPPY_AIGEN_DISCORD_BOT_TOKEN}
+  category_name: Happy_AIGen
+  public_channel_url: https://discord.com/channels/1098969804146216990/1203384633295765516
+
+pixel_enigma:
+  min_player: 2
+  match_timeout_sec: 20

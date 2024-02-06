@@ -34,3 +34,11 @@ async def create_private_channel(
         guild.me: discord.PermissionOverwrite(view_channel=True)
     }
     return await parent.create_text_channel(channel_name, overwrites=overwrites)
+
+async def send_image(channel: discord.abc.GuildChannel, message: str, image_path: str):
+    with open(image_path, 'rb') as f:
+        if message:
+            await channel.send(message, file=discord.File(f))
+        else:
+            await channel.send(file=discord.File(f))
+

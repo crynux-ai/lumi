@@ -30,4 +30,10 @@ expect: Respond "Timeout"
     A: /pixel start
 expect: Second start returns "You are already in the queue"
 
+8. Timeout and restart
+    A: /pixel start
+    wait..
+    B: /pixel start
+    A: /pixel start
+expect: Game starts
 """

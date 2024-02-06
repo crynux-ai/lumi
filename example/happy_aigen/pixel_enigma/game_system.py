@@ -5,7 +5,7 @@ import enum
 from typing import Tuple, Optional
 
 from game_controller import user
-from utils import storage, configs
+from utils import storage, configs, discord_helper
 
 class GameStatus(enum.Enum):
     PENDING = 0
@@ -53,10 +53,12 @@ class GameSystem:
 
     def __init__(self, game_store: storage.Storage):
         self.game_store = game_store
-        self.pending_game = {}
-        self.pending_barrier = {}
+        self.pending_game = {}  # channel_id -> Game
+        self.pending_barrier = {}  # channel_id -> Barrier to Game
+        self.prompt_wait = {}   # discord_userid -> Event
+        self.ongoing_game = {}  # discord_userid -> Game
 
-    async def start(self, interaction: discord.Interaction, u: user.User) -> Tuple[Optional[Game], str]:
+    async def match(self, interaction: discord.Interaction, u: user.User) -> Tuple[Optional[Game], str]:
         if u.credit_e8 < configs.config["pixel_enigma"]["stake_credit_e8"]:
             return None, (
                 f"Hello, {interaction.user.mention}, you don't have enough credit to start a game. "
@@ -99,6 +101,7 @@ class GameSystem:
                 await self.pending_barrier[u.current_channel_id].wait()
             game.status = GameStatus.ALL_JOINED
             self.game_store.insert(game.game_id, game)
+            self.prompt_wait[u.discord_userid] = asyncio.Event()
             
             if u.current_channel_id in self.pending_game:
                 self.pending_game.pop(u.current_channel_id)
@@ -116,5 +119,38 @@ class GameSystem:
             return None, f"Sorry, {interaction.user.mention}, we haven't matched any players with you, try again later."
 
 
-    async def prompt(self, interaction: discord.Interaction, prompt: str):
-        pass
+    async def start(self, interaction: discord.Interaction, u: user.User) -> None:
+        message = (
+            f"Hello, please DM me with the prompt that can generate the image with best similarity "
+            f"within {configs.config["pixel_enigma"]["prompt_timeout_sec"]} seconds. "
+            f"Don't share your prompt in the public channel."
+        )
+
+        if not interaction.user.dm_channel:
+            await interaction.user.create_dm()
+
+        await discord_helper.send_image(interaction.channel, message, "1.jpeg")
+        await discord_helper.send_image(interaction.user.dm_channel, message, "1.jpeg")
+        last_call_sec = configs.config["pixel_enigma"]["last_call_sec"] or 5
+        first_timeout_sec = configs.config["pixel_enigma"]["prompt_timeout_sec"] - last_call_sec
+        try:
+            async with asyncio.timeout(first_timeout_sec):
+                await self.prompt_wait[u.discord_userid].wait()
+        except TimeoutError:
+            await interaction.user.dm_channel.send(f"Hurry! You only have {last_call_sec} seconds left")
+        if not self.prompt_wait[u.discord_userid].is_set():
+            try:
+                async with asyncio.timeout(last_call_sec):
+                    await self.prompt_wait[u.discord_userid].wait()
+            except TimeoutError:
+                await interaction.user.dm_channel.send("Time is up!")
+        if not self.prompt_wait[u.discord_userid].is_set():
+            return
+        # TODO: send evaluation.
+
+
+
+    async def prompt(self, interaction: discord.Interaction, u: user.User):
+        self.prompt_wait[u.discord_userid].set()
+        await interaction.response.send_message("Receive your prompt, evaluting...")
+

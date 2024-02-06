@@ -6,4 +6,6 @@ discord:
 pixel_enigma:
   min_player: 2
   match_timeout_sec: 20
+  prompt_timeout_sec: 20
+  last_call_sec: 10
   stake_credit_e8: 10_000_000_00

@@ -3,6 +3,7 @@ python-dotenv
 dataclass-wizard
 requests
 PyYAML
+pyaml-env
 pytest
 
 # Huggingface
